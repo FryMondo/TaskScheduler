@@ -40,7 +40,6 @@ public class MainController {
     public String addTask(@ModelAttribute("task") Task task, @SessionAttribute("userId") int userId, Model model,
                           HttpSession session, @PathVariable String username,
                           @SessionAttribute("username") String sessionUsername) {
-        username = (String) session.getAttribute("username");
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
@@ -125,25 +124,29 @@ public class MainController {
 
     @PostMapping("/{username}/tasks/sortByDate")
     public String getTasksSortedByDate(Model model, HttpSession session, @PathVariable String username,
-                                       @SessionAttribute("username") String sessionUsername) {
+                                       @SessionAttribute("username") String sessionUsername,
+                                       @SessionAttribute("userId") int userId) {
         username = (String) session.getAttribute("username");
+        displayUsername(model, session);
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
         model.addAttribute("task", taskPrototype);
-        model.addAttribute("showTask", taskService.getTasksSortedByDate());
-        return "redirect:/" + username;
+        model.addAttribute("showTask", taskService.getTasksSortedByDate(userId));
+        return "main";
     }
 
     @PostMapping("/{username}/tasks/sortByPriority")
     public String getTasksSortedByPriority(Model model, HttpSession session, @PathVariable String username,
-                                           @SessionAttribute("username") String sessionUsername) {
+                                           @SessionAttribute("username") String sessionUsername,
+                                           @SessionAttribute("userId") int userId) {
         username = (String) session.getAttribute("username");
+        displayUsername(model, session);
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
         model.addAttribute("task", taskPrototype);
-        model.addAttribute("showTask", taskService.getTasksSortedByPriority());
-        return "redirect:/" + username;
+        model.addAttribute("showTask", taskService.getTasksSortedByPriority(userId));
+        return "main";
     }
 }

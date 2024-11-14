@@ -63,14 +63,16 @@ public class TaskService {
         taskRepositoryStub.getTasks().remove(task);
     }
 
-    public List<Task> getTasksSortedByDate() {
+    public List<Task> getTasksSortedByDate(int userId) {
         return taskRepositoryStub.getTasks().stream()
+                .filter(task -> task.getUserId() == userId)
                 .sorted(Comparator.comparing(Task::getDeadline))
                 .collect(Collectors.toList());
     }
 
-    public List<Task> getTasksSortedByPriority() {
+    public List<Task> getTasksSortedByPriority(int userId) {
         return taskRepositoryStub.getTasks().stream()
+                .filter(task -> task.getUserId() == userId)
                 .sorted(Comparator.comparing(Task::getPriority))
                 .collect(Collectors.toList());
     }
