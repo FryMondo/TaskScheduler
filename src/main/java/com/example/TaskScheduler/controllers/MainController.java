@@ -2,7 +2,6 @@ package com.example.TaskScheduler.controllers;
 
 import com.example.TaskScheduler.models.Task;
 import com.example.TaskScheduler.service.TaskService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,33 +18,25 @@ public class MainController {
         this.taskPrototype = taskPrototype;
     }
 
-    private void displayUsername(Model model, HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        model.addAttribute("username", username);
-    }
-
     @GetMapping("/{username}")
-    public String getTasks(Model model, HttpSession session,
-                           @PathVariable String username, @SessionAttribute("username") String sessionUsername) {
-        username = (String) session.getAttribute("username");
+    public String getTasks(Model model, @PathVariable String username,
+                           @SessionAttribute("username") String sessionUsername) {
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
-        displayUsername(model, session);
+        model.addAttribute("username", sessionUsername);
         model.addAttribute("task", taskPrototype);
         model.addAttribute("showTask", taskService.getTasksForUser(sessionUsername));
         return "main";
     }
 
     @PostMapping("/{username}/task/addTask")
-    public String addTask(@ModelAttribute("task") Task task, Model model,
-                          HttpSession session, @PathVariable String username,
+    public String addTask(@ModelAttribute("task") Task task, Model model, @PathVariable String username,
                           @SessionAttribute("username") String sessionUsername) {
-        username = (String) session.getAttribute("username");
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
-        displayUsername(model, session);
+        model.addAttribute("username", sessionUsername);
         if (taskService.isTaskTitleEmpty(task.getTitle())) {
             model.addAttribute("task", taskPrototype);
             model.addAttribute("showTask", taskService.getTasksForUser(sessionUsername));
@@ -65,13 +56,12 @@ public class MainController {
             return "main";
         }
         taskService.addTask(task, sessionUsername);
-        return "redirect:/" + username;
+        return "redirect:/" + sessionUsername;
     }
 
     @PostMapping("/{username}/task/toggleCompletedTask/{id}")
-    public String toggleCompleted(@PathVariable int id, HttpSession session, @PathVariable String username,
+    public String toggleCompleted(@PathVariable int id, @PathVariable String username,
                                   @SessionAttribute("username") String sessionUsername) {
-        username = (String) session.getAttribute("username");
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
@@ -79,18 +69,16 @@ public class MainController {
                 new IllegalArgumentException("Invalid task ID: " + id));
         task.setCompleted(!task.isCompleted());
         taskService.updateTask(task);
-        return "redirect:/" + username;
+        return "redirect:/" + sessionUsername;
     }
 
     @GetMapping("/{username}/editTask/{id}")
-    public String editTask(@PathVariable int id, Model model,
-                           HttpSession session, @PathVariable String username,
+    public String editTask(@PathVariable int id, Model model, @PathVariable String username,
                            @SessionAttribute("username") String sessionUsername) {
-        username = (String) session.getAttribute("username");
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
-        displayUsername(model, session);
+        model.addAttribute("username", sessionUsername);
         Task taskToEdit = taskService.getTaskById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid task ID:" + id));
         model.addAttribute("isEditing", id);
@@ -101,50 +89,46 @@ public class MainController {
     }
 
     @PostMapping("/{username}/task/updateTask")
-    public String updateTask(@ModelAttribute("task") Task task, HttpSession session, @PathVariable String username,
+    public String updateTask(@ModelAttribute("task") Task task, @PathVariable String username,
                              @SessionAttribute("username") String sessionUsername) {
-        username = (String) session.getAttribute("username");
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
         taskService.updateTask(task);
-        return "redirect:/" + username;
+        return "redirect:/" + sessionUsername;
     }
 
     @PostMapping("/{username}/task/deleteTask/{id}")
-    public String deleteTask(@PathVariable int id, HttpSession session, @PathVariable String username,
+    public String deleteTask(@PathVariable int id, @PathVariable String username,
                              @SessionAttribute("username") String sessionUsername) {
-        username = (String) session.getAttribute("username");
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
         Task task = taskService.getTaskById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid task ID: " + id));
         taskService.deleteTask(task);
-        return "redirect:/" + username;
+        return "redirect:/" + sessionUsername;
     }
 
     @PostMapping("/{username}/tasks/sortByDate")
-    public String getTasksSortedByDate(Model model, HttpSession session, @PathVariable String username,
+    public String getTasksSortedByDate(Model model, @PathVariable String username,
                                        @SessionAttribute("username") String sessionUsername) {
-        username = (String) session.getAttribute("username");
-        displayUsername(model, session);
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
+        model.addAttribute("username", sessionUsername);
         model.addAttribute("task", taskPrototype);
         model.addAttribute("showTask", taskService.getTasksSortedByDate(sessionUsername));
         return "main";
     }
 
     @PostMapping("/{username}/tasks/sortByPriority")
-    public String getTasksSortedByPriority(Model model, HttpSession session, @PathVariable String username,
+    public String getTasksSortedByPriority(Model model, @PathVariable String username,
                                            @SessionAttribute("username") String sessionUsername) {
-        username = (String) session.getAttribute("username");
-        displayUsername(model, session);
         if (!username.equals(sessionUsername)) {
             return "redirect:/login";
         }
+        model.addAttribute("username", sessionUsername);
         model.addAttribute("task", taskPrototype);
         model.addAttribute("showTask", taskService.getTasksSortedByPriority(sessionUsername));
         return "main";

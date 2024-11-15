@@ -30,7 +30,7 @@
 </div>
 
 <div class="container mt-3" style="margin-left: 100px; width: 600px">
-    <form th:action="@{/{username}/task/addTask}" th:method="POST" th:object="${task}">
+    <form th:action="@{/{username}/task/addTask(username=${username})}" th:method="POST" th:object="${task}">
         <div class="mb-3">
             <label class="form-label" for="taskTitle">Заголовок завдання</label>
             <input class="form-control" id="taskTitle" oninput="clearErrorMessage('error-title')"
@@ -72,10 +72,11 @@
 
 <div class="container mt-5" style="margin-top: -485px !important; margin-right: 100px">
     <div class="d-flex justify-content-end">
-        <form method="post" style="display: inline;" th:action="@{/{username}/tasks/sortByDate}">
+        <form method="post" style="display: inline;" th:action="@{/{username}/tasks/sortByDate(username=${username})}">
             <button class="btn btn-secondary me-2" type="submit">Сортувати за датою</button>
         </form>
-        <form method="post" style="display: inline;" th:action="@{/{username}/tasks/sortByPriority}">
+        <form method="post" style="display: inline;"
+              th:action="@{/{username}/tasks/sortByPriority(username=${username})}">
             <button class="btn btn-secondary" type="submit">Сортувати за пріоритетом</button>
         </form>
     </div>
@@ -86,7 +87,8 @@
          th:each="task : ${showTask}">
         <div class="card-body">
             <div th:if="${isEditing == task.id}">
-                <form th:action="@{/{username}/task/updateTask}" th:method="POST" th:object="${newTask}">
+                <form th:action="@{/{username}/task/updateTask(username=${username})}"
+                      th:method="POST" th:object="${newTask}">
                     <input th:field="*{id}" type="hidden"/>
                     <h5>Редагування завдання</h5>
                     <label class="form-label" for="editTaskTitle">Заголовок завдання</label>
@@ -131,13 +133,14 @@
                 <p class="card-text" th:text="${task.description}">Текст завдання</p>
                 <p class="card-text">Термін виконання: <span th:text="${task.deadline}">Дедлайн</span></p>
                 <p class="card-text">Пріоритет: <span th:text="${task.priority}">Пріоритет</span></p>
-                <a class="btn btn-primary" th:href="@{/{username}/editTask/{id}(id=${task.id})}">Редагувати</a>
-                <form method="post"
-                      style="display:inline;" th:action="@{/{username}/task/deleteTask/{id}(id=${task.id})}">
+                <a class="btn btn-primary"
+                   th:href="@{/{username}/editTask/{id}(id=${task.id}, username=${username})}">Редагувати</a>
+                <form method="post" style="display:inline;"
+                      th:action="@{/{username}/task/deleteTask/{id}(id=${task.id}, username=${username})}">
                     <button class="btn btn-danger" type="submit">Видалити</button>
                 </form>
-                <form method="post"
-                      style="display:inline;" th:action="@{/{username}/task/toggleCompletedTask/{id}(id=${task.id})}">
+                <form method="post" style="display:inline;"
+                      th:action="@{/{username}/task/toggleCompletedTask/{id}(id=${task.id}, username=${username})}">
                     <button class="btn btn-secondary" th:text="${task.completed ? 'Невиконане' : 'Виконане'}"
                             type="submit"></button>
                 </form>
