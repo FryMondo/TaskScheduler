@@ -69,7 +69,6 @@ public class RegistrationController {
         }
         userService.addUser(user);
         session.setAttribute("username", user.getUsername());
-        session.setAttribute("userId", user.getId());
         return "redirect:/" + user.getUsername();
     }
 }

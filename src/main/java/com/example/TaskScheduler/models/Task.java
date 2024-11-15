@@ -2,7 +2,7 @@ package com.example.TaskScheduler.models;
 
 public class Task {
     private int id;
-    private int userId;
+    private String username;
     private String title;
     private String description;
     private String deadline;
@@ -12,10 +12,10 @@ public class Task {
     public Task() {
     }
 
-    public Task(int id, int userId, String title, String description, String deadline,
+    public Task(int id, String username, String title, String description, String deadline,
                 String priority, boolean completed) {
         this.id = id;
-        this.userId = userId;
+        this.username = username;
         this.title = title;
         this.description = description;
         this.deadline = deadline;
@@ -71,11 +71,11 @@ public class Task {
         this.completed = completed;
     }
 
-    public int getUserId() {
-        return userId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

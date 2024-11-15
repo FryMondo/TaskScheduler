@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -32,15 +33,15 @@ public class TaskService {
         return deadline.trim().isEmpty();
     }
 
-    public List<Task> getTasksForUser(int userId) {
+    public List<Task> getTasksForUser(String username) {
         return taskRepositoryStub.getTasks().stream()
-                .filter(task -> task.getUserId() == userId)
+                .filter(task -> Objects.equals(task.getUsername(), username))
                 .collect(Collectors.toList());
     }
 
-    public void addTask(Task task, int userId) {
+    public void addTask(Task task, String username) {
         task.setId(++taskID);
-        task.setUserId(userId);
+        task.setUsername(username);
         taskRepositoryStub.getTasks().add(task);
     }
 
@@ -63,16 +64,16 @@ public class TaskService {
         taskRepositoryStub.getTasks().remove(task);
     }
 
-    public List<Task> getTasksSortedByDate(int userId) {
+    public List<Task> getTasksSortedByDate(String username) {
         return taskRepositoryStub.getTasks().stream()
-                .filter(task -> task.getUserId() == userId)
+                .filter(task -> Objects.equals(task.getUsername(), username))
                 .sorted(Comparator.comparing(Task::getDeadline))
                 .collect(Collectors.toList());
     }
 
-    public List<Task> getTasksSortedByPriority(int userId) {
+    public List<Task> getTasksSortedByPriority(String username) {
         return taskRepositoryStub.getTasks().stream()
-                .filter(task -> task.getUserId() == userId)
+                .filter(task -> Objects.equals(task.getUsername(), username))
                 .sorted(Comparator.comparing(Task::getPriority))
                 .collect(Collectors.toList());
     }
