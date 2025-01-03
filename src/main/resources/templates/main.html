@@ -59,11 +59,11 @@
         <div class="mb-3">
             <label class="form-label" for="taskPriority">Пріоритет</label>
             <select class="form-control" id="taskPriority" th:field="*{priority}">
-                <option value="1">1 (найважливіше)</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5 (найменш важливе)</option>
+                <option th:value="1">1 (найважливіше)</option>
+                <option th:value="2">2</option>
+                <option th:value="3">3</option>
+                <option th:value="4">4</option>
+                <option th:value="5">5 (найменш важливе)</option>
             </select>
         </div>
         <button class="btn btn-primary" type="submit">Додати завдання</button>
@@ -115,11 +115,11 @@
 
                     <label class="form-label" for="priority">Пріоритет</label>
                     <select class="form-control" id="priority" th:field="*{priority}">
-                        <option value="1">1 (найважливіше)</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5 (найменш важливе)</option>
+                        <option th:value="1">1 (найважливіше)</option>
+                        <option th:value="2">2</option>
+                        <option th:value="3">3</option>
+                        <option th:value="4">4</option>
+                        <option th:value="5">5 (найменш важливе)</option>
                     </select>
 
                     <button class="btn btn-primary" type="submit">Оновити</button>
@@ -141,8 +141,13 @@
                 </form>
                 <form method="post" style="display:inline;"
                       th:action="@{/{username}/task/toggleCompletedTask/{id}(id=${task.id}, username=${username})}">
-                    <button class="btn btn-secondary" th:text="${task.completed ? 'Невиконане' : 'Виконане'}"
-                            type="submit"></button>
+                    <button class="btn btn-secondary"
+                            th:switch="${task.completed}"
+                            type="submit">
+                        <span th:case="true">Невиконане</span>
+                        <span th:case="false">Виконане</span>
+                    </button>
+
                 </form>
             </div>
         </div>
