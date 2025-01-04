@@ -25,14 +25,9 @@ public class MainController {
 
     @GetMapping("/{username}")
     public ResponseEntity<List<Task>> getTasks(Model model, @PathVariable String username,
-                                   @SessionAttribute(value = "username", required = false) String sessionUsername,
                                    @RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "5") int size,
                                    @RequestParam(defaultValue = "all") String filterStatus) {
-        if (!username.equals(sessionUsername)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
-
         List<Task> tasks;
 
         if (filterStatus.equals("completed")) {
@@ -47,11 +42,7 @@ public class MainController {
     }
 
     @PostMapping("/{username}/task/addTask")
-    public ResponseEntity<Void> addTask(@ModelAttribute("task") Task task, Model model, @PathVariable String username,
-                          @SessionAttribute("username") String sessionUsername) {
-        if (!username.equals(sessionUsername)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
+    public ResponseEntity<Void> addTask(@ModelAttribute("task") Task task, @PathVariable String username) {
 
         if (taskService.isTaskTitleEmpty(task.getTitle())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -65,16 +56,12 @@ public class MainController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        taskService.addTask(task, sessionUsername);
+        taskService.addTask(task, username);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/{username}/task/toggleCompletedTask/{id}")
-    public ResponseEntity<Task> toggleCompleted(@PathVariable int id, @PathVariable String username,
-                                  @SessionAttribute("username") String sessionUsername) {
-        if (!username.equals(sessionUsername)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
+    public ResponseEntity<Task> toggleCompleted(@PathVariable int id, @PathVariable String username) {
 
         Task task = taskService.getTaskById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid task ID: " + id));
@@ -85,11 +72,7 @@ public class MainController {
     }
 
     @GetMapping("/{username}/editTask/{id}")
-    public ResponseEntity<Task> editTask(@PathVariable int id, Model model, @PathVariable String username,
-                           @SessionAttribute("username") String sessionUsername) {
-        if (!username.equals(sessionUsername)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
+    public ResponseEntity<Task> editTask(@PathVariable int id, Model model, @PathVariable String username) {
 
         Task taskToEdit = taskService.getTaskById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid task ID:" + id));
@@ -98,23 +81,14 @@ public class MainController {
     }
 
     @PostMapping("/{username}/task/updateTask")
-    public ResponseEntity<Task> updateTask(@ModelAttribute("task") Task task, @PathVariable String username,
-                             @SessionAttribute("username") String sessionUsername) {
-        if (!username.equals(sessionUsername)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
+    public ResponseEntity<Task> updateTask(@ModelAttribute("task") Task task, @PathVariable String username) {
 
         taskService.updateTask(task);
         return ResponseEntity.ok(task);
     }
 
     @PostMapping("/{username}/task/deleteTask/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable int id, @PathVariable String username,
-                             @SessionAttribute("username") String sessionUsername) {
-        if (!username.equals(sessionUsername)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
-
+    public ResponseEntity<Void> deleteTask(@PathVariable int id, @PathVariable String username) {
         Task task = taskService.getTaskById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid task ID: " + id));
 
@@ -123,24 +97,16 @@ public class MainController {
     }
 
     @PostMapping("/{username}/tasks/sortByDate")
-    public ResponseEntity<List<Task>> getTasksSortedByDate(Model model, @PathVariable String username,
-                                       @SessionAttribute("username") String sessionUsername) {
-        if (!username.equals(sessionUsername)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
+    public ResponseEntity<List<Task>> getTasksSortedByDate(@PathVariable String username) {
 
-        List<Task> sortedTasks = taskService.getTasksSortedByDate(sessionUsername);
+        List<Task> sortedTasks = taskService.getTasksSortedByDate(username);
 
         return ResponseEntity.status(HttpStatus.OK).body(sortedTasks);
     }
 
     @PostMapping("/{username}/tasks/sortByPriority")
-    public ResponseEntity<List<Task>> getTasksSortedByPriority(Model model, @PathVariable String username,
-                                           @SessionAttribute("username") String sessionUsername) {
-        if (!username.equals(sessionUsername)) {
-            return ResponseEntity.status(HttpStatus.FOUND).build();
-        }
-        List<Task> sortedTasks = taskService.getTasksSortedByPriority(sessionUsername);
+    public ResponseEntity<List<Task>> getTasksSortedByPriority(@PathVariable String username) {
+        List<Task> sortedTasks = taskService.getTasksSortedByPriority(username);
 
         return ResponseEntity.status(HttpStatus.OK).body(sortedTasks);
     }
@@ -148,8 +114,7 @@ public class MainController {
     @GetMapping("/{username}/tasks{page}")
     public ResponseEntity<Map<String, Object>> getPaginatedTasks(@PathVariable String username,
                                                                  @RequestParam(defaultValue = "0") int page,
-                                                                 @RequestParam(defaultValue = "5") int size,
-                                                                 @SessionAttribute("username") String sessionUsername) {
+                                                                 @RequestParam(defaultValue = "5") int size) {
 
         if (page < 0) {
             page = 0;
