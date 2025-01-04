@@ -77,4 +77,17 @@ public class TaskService {
                 .sorted(Comparator.comparing(Task::getPriority))
                 .collect(Collectors.toList());
     }
+
+    public List<Task> getPaginatedTasks(String username, int page, int size) {
+        return taskRepositoryStub.getTasksWithPagination(page, size).stream()
+                .filter(task -> task.getUsername().equals(username))
+                .collect(Collectors.toList());
+    }
+
+    public int getTotalTaskCount(String username) {
+        // Фільтруємо завдання, які належать конкретному користувачеві, і рахуємо їх
+        return (int) taskRepositoryStub.getTasks().stream()
+                .filter(task -> task.getUsername().equals(username))
+                .count();
+    }
 }

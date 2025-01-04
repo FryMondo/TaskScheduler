@@ -14,6 +14,22 @@
         <span class="fs-4">Task Scheduler</span>
     </a>
     <hr>
+    <div>
+
+        <form method="get" th:action="@{/{username}(username=${username})}">
+            <input type="hidden" name="page" th:value="${currentPage - 1}" />
+            <input type="hidden" name="size" th:value="${pageSize}" />
+            <input type="hidden" name="username" th:value="${username}" />
+            <button type="submit" th:attr="disabled=${currentPage == 0}">Попередня</button>
+        </form>
+        <form method="get" th:action="@{/{username}(username=${username})}">
+            <input type="hidden" name="page" th:value="${currentPage + 1}" />
+            <input type="hidden" name="size" th:value="${pageSize}" />
+            <input type="hidden" name="username" th:value="${username}" />
+            <button type="submit" th:attr="disabled=${(currentPage + 1) * pageSize >= totalTasks}">Наступна</button>
+        </form>
+    </div>
+    <hr>
     <div class="dropdown">
         <a aria-expanded="false" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
            data-bs-toggle="dropdown" href="#">
@@ -24,6 +40,10 @@
         </ul>
     </div>
 </div>
+<p>Поточна сторінка: <span th:text="${currentPage}"></span></p>
+<p>Розмір сторінки: <span th:text="${pageSize}"></span></p>
+<p>Загальна кількість завдань: <span th:text="${totalTasks}"></span></p>
+
 
 <div class="container mt-5" style="margin-left: 100px">
     <h1>Додати завдання</h1>

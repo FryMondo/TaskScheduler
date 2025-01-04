@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 public class MainController {
     private final TaskService taskService;
@@ -20,13 +22,20 @@ public class MainController {
 
     @GetMapping("/{username}")
     public String getTasks(Model model, @PathVariable String username,
-                           @SessionAttribute("username") String sessionUsername) {
-        if (!username.equals(sessionUsername)) {
-            return "redirect:/login";
-        }
+                           @SessionAttribute(value = "username", required = false) String sessionUsername,
+                           @RequestParam(defaultValue = "0") int page,
+                           @RequestParam(defaultValue = "5") int size) {
+
+        List<Task> paginatedTasks = taskService.getPaginatedTasks(username, page, size);
+        int totalTasks = taskService.getTotalTaskCount(username);
+
         model.addAttribute("username", sessionUsername);
-        model.addAttribute("task", taskPrototype);
-        model.addAttribute("showTask", taskService.getTasksForUser(sessionUsername));
+        model.addAttribute("task", new Task());
+        model.addAttribute("showTask", paginatedTasks);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", size);
+        model.addAttribute("totalTasks", totalTasks);
+
         return "main";
     }
 
@@ -131,6 +140,32 @@ public class MainController {
         model.addAttribute("username", sessionUsername);
         model.addAttribute("task", taskPrototype);
         model.addAttribute("showTask", taskService.getTasksSortedByPriority(sessionUsername));
+        return "main";
+    }
+
+    @GetMapping("/{username}/tasks")
+    public String getPaginatedTasks(@PathVariable String username,
+                                    @RequestParam(defaultValue = "0") int page,
+                                    @RequestParam(defaultValue = "5") int size,
+                                    Model model,
+                                    @SessionAttribute("username") String sessionUsername) {
+
+        if (page < 0) {
+            page = 0;
+        }
+        if (size <= 0) {
+            size = 5;
+        }
+
+        List<Task> paginatedTasks = taskService.getPaginatedTasks(username, page, size);
+        int totalTasks = taskService.getTotalTaskCount(username);
+
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", size);
+        model.addAttribute("totalTasks", totalTasks);
+        model.addAttribute("tasks", paginatedTasks);
+        model.addAttribute("username", sessionUsername);
+
         return "main";
     }
 }
