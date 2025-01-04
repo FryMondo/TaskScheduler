@@ -90,4 +90,21 @@ public class TaskService {
                 .filter(task -> task.getUsername().equals(username))
                 .count();
     }
+
+    public List<Task> getCompletedTasksForUser(String username, int page, int size) {
+        return taskRepositoryStub.getTasks().stream()
+                .filter(task -> task.getUsername().equals(username) && task.isCompleted())
+                .skip(page * size)
+                .limit(size)
+                .collect(Collectors.toList());
+    }
+
+    public List<Task> getNotCompletedTasksForUser(String username, int page, int size) {
+        return taskRepositoryStub.getTasks().stream()
+                .filter(task -> task.getUsername().equals(username) && !task.isCompleted())
+                .skip(page * size)
+                .limit(size)
+                .collect(Collectors.toList());
+    }
+
 }

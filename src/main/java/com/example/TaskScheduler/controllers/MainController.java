@@ -24,17 +24,30 @@ public class MainController {
     public String getTasks(Model model, @PathVariable String username,
                            @SessionAttribute(value = "username", required = false) String sessionUsername,
                            @RequestParam(defaultValue = "0") int page,
-                           @RequestParam(defaultValue = "5") int size) {
+                           @RequestParam(defaultValue = "5") int size,
+                           @RequestParam(defaultValue = "all") String filterStatus) {
+        if (!username.equals(sessionUsername)) {
+            return "redirect:/login";
+        }
 
-        List<Task> paginatedTasks = taskService.getPaginatedTasks(username, page, size);
+        List<Task> tasks;
+        if (filterStatus.equals("completed")) {
+            tasks = taskService.getCompletedTasksForUser(username, page, size);
+        } else if (filterStatus.equals("notCompleted")) {
+            tasks = taskService.getNotCompletedTasksForUser(username, page, size);
+        } else {
+            tasks = taskService.getPaginatedTasks(username, page, size);
+        }
+
         int totalTasks = taskService.getTotalTaskCount(username);
 
         model.addAttribute("username", sessionUsername);
         model.addAttribute("task", new Task());
-        model.addAttribute("showTask", paginatedTasks);
+        model.addAttribute("showTask", tasks);
         model.addAttribute("currentPage", page);
         model.addAttribute("pageSize", size);
         model.addAttribute("totalTasks", totalTasks);
+        model.addAttribute("filterStatus", filterStatus);
 
         return "main";
     }
@@ -143,7 +156,7 @@ public class MainController {
         return "main";
     }
 
-    @GetMapping("/{username}/tasks")
+    @GetMapping("/{username}/tasks{page}")
     public String getPaginatedTasks(@PathVariable String username,
                                     @RequestParam(defaultValue = "0") int page,
                                     @RequestParam(defaultValue = "5") int size,

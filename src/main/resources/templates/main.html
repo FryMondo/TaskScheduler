@@ -15,7 +15,6 @@
     </a>
     <hr>
     <div>
-
         <form method="get" th:action="@{/{username}(username=${username})}">
             <input type="hidden" name="page" th:value="${currentPage - 1}" />
             <input type="hidden" name="size" th:value="${pageSize}" />
@@ -92,6 +91,16 @@
 
 <div class="container mt-5" style="margin-top: -485px !important; margin-right: 100px">
     <div class="d-flex justify-content-end">
+        <form method="get" style="display: inline;"
+              th:action="@{/{username}(username=${username})}" th:object="${username}">
+            <input type="hidden" name="filterStatus"
+                   th:value="${filterStatus == 'completed' ? 'notCompleted' : 'completed'}" />
+            <input type="hidden" name="page" th:value="${currentPage}" />
+            <input type="hidden" name="size" th:value="${pageSize}" />
+            <button type="submit" class="btn btn-info">
+                <span th:text="${filterStatus == 'completed' ? 'Невиконані' : 'Виконані'}"></span>
+            </button>
+        </form>
         <form method="post" style="display: inline;" th:action="@{/{username}/tasks/sortByDate(username=${username})}">
             <button class="btn btn-secondary me-2" type="submit">Сортувати за датою</button>
         </form>
@@ -167,7 +176,6 @@
                         <span th:case="true">Невиконане</span>
                         <span th:case="false">Виконане</span>
                     </button>
-
                 </form>
             </div>
         </div>
