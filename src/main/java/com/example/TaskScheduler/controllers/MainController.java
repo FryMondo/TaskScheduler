@@ -3,13 +3,16 @@ package com.example.TaskScheduler.controllers;
 import com.example.TaskScheduler.models.Task;
 import com.example.TaskScheduler.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-@Controller
+@RestController
 public class MainController {
     private final TaskService taskService;
     private final Task taskPrototype;
@@ -21,16 +24,17 @@ public class MainController {
     }
 
     @GetMapping("/{username}")
-    public String getTasks(Model model, @PathVariable String username,
-                           @SessionAttribute(value = "username", required = false) String sessionUsername,
-                           @RequestParam(defaultValue = "0") int page,
-                           @RequestParam(defaultValue = "5") int size,
-                           @RequestParam(defaultValue = "all") String filterStatus) {
+    public ResponseEntity<List<Task>> getTasks(Model model, @PathVariable String username,
+                                   @SessionAttribute(value = "username", required = false) String sessionUsername,
+                                   @RequestParam(defaultValue = "0") int page,
+                                   @RequestParam(defaultValue = "5") int size,
+                                   @RequestParam(defaultValue = "all") String filterStatus) {
         if (!username.equals(sessionUsername)) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
 
         List<Task> tasks;
+
         if (filterStatus.equals("completed")) {
             tasks = taskService.getCompletedTasksForUser(username, page, size);
         } else if (filterStatus.equals("notCompleted")) {
@@ -39,129 +43,113 @@ public class MainController {
             tasks = taskService.getPaginatedTasks(username, page, size);
         }
 
-        int totalTasks = taskService.getTotalTaskCount(username);
-
-        model.addAttribute("username", sessionUsername);
-        model.addAttribute("task", new Task());
-        model.addAttribute("showTask", tasks);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("pageSize", size);
-        model.addAttribute("totalTasks", totalTasks);
-        model.addAttribute("filterStatus", filterStatus);
-
-        return "main";
+        return ResponseEntity.ok(tasks);
     }
 
     @PostMapping("/{username}/task/addTask")
-    public String addTask(@ModelAttribute("task") Task task, Model model, @PathVariable String username,
+    public ResponseEntity<Void> addTask(@ModelAttribute("task") Task task, Model model, @PathVariable String username,
                           @SessionAttribute("username") String sessionUsername) {
         if (!username.equals(sessionUsername)) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
-        model.addAttribute("username", sessionUsername);
+
         if (taskService.isTaskTitleEmpty(task.getTitle())) {
-            model.addAttribute("task", taskPrototype);
-            model.addAttribute("showTask", taskService.getTasksForUser(sessionUsername));
-            model.addAttribute("error_title", "Порожній заголовок завдання");
-            return "main";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+
         if (taskService.isTaskDescriptionEmpty(task.getDescription())) {
-            model.addAttribute("task", taskPrototype);
-            model.addAttribute("showTask", taskService.getTasksForUser(sessionUsername));
-            model.addAttribute("error_description", "Порожній текст завдання");
-            return "main";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+
         if (taskService.isTaskDeadlineEmpty(task.getDeadline())) {
-            model.addAttribute("task", taskPrototype);
-            model.addAttribute("showTask", taskService.getTasksForUser(sessionUsername));
-            model.addAttribute("error_deadline", "Порожній дедлайн");
-            return "main";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+
         taskService.addTask(task, sessionUsername);
-        return "redirect:/" + sessionUsername;
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/{username}/task/toggleCompletedTask/{id}")
-    public String toggleCompleted(@PathVariable int id, @PathVariable String username,
+    public ResponseEntity<Task> toggleCompleted(@PathVariable int id, @PathVariable String username,
                                   @SessionAttribute("username") String sessionUsername) {
         if (!username.equals(sessionUsername)) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
+
         Task task = taskService.getTaskById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid task ID: " + id));
+
         task.setCompleted(!task.isCompleted());
         taskService.updateTask(task);
-        return "redirect:/" + sessionUsername;
+        return ResponseEntity.ok(task);
     }
 
     @GetMapping("/{username}/editTask/{id}")
-    public String editTask(@PathVariable int id, Model model, @PathVariable String username,
+    public ResponseEntity<Task> editTask(@PathVariable int id, Model model, @PathVariable String username,
                            @SessionAttribute("username") String sessionUsername) {
         if (!username.equals(sessionUsername)) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
-        model.addAttribute("username", sessionUsername);
+
         Task taskToEdit = taskService.getTaskById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid task ID:" + id));
-        model.addAttribute("isEditing", id);
-        model.addAttribute("task", taskPrototype);
-        model.addAttribute("newTask", taskToEdit);
-        model.addAttribute("showTask", taskService.getTasksForUser(sessionUsername));
-        return "main";
+
+        return ResponseEntity.ok(taskToEdit);
     }
 
     @PostMapping("/{username}/task/updateTask")
-    public String updateTask(@ModelAttribute("task") Task task, @PathVariable String username,
+    public ResponseEntity<Task> updateTask(@ModelAttribute("task") Task task, @PathVariable String username,
                              @SessionAttribute("username") String sessionUsername) {
         if (!username.equals(sessionUsername)) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
+
         taskService.updateTask(task);
-        return "redirect:/" + sessionUsername;
+        return ResponseEntity.ok(task);
     }
 
     @PostMapping("/{username}/task/deleteTask/{id}")
-    public String deleteTask(@PathVariable int id, @PathVariable String username,
+    public ResponseEntity<Void> deleteTask(@PathVariable int id, @PathVariable String username,
                              @SessionAttribute("username") String sessionUsername) {
         if (!username.equals(sessionUsername)) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
+
         Task task = taskService.getTaskById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid task ID: " + id));
+
         taskService.deleteTask(task);
-        return "redirect:/" + sessionUsername;
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @PostMapping("/{username}/tasks/sortByDate")
-    public String getTasksSortedByDate(Model model, @PathVariable String username,
+    public ResponseEntity<List<Task>> getTasksSortedByDate(Model model, @PathVariable String username,
                                        @SessionAttribute("username") String sessionUsername) {
         if (!username.equals(sessionUsername)) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
-        model.addAttribute("username", sessionUsername);
-        model.addAttribute("task", taskPrototype);
-        model.addAttribute("showTask", taskService.getTasksSortedByDate(sessionUsername));
-        return "main";
+
+        List<Task> sortedTasks = taskService.getTasksSortedByDate(sessionUsername);
+
+        return ResponseEntity.status(HttpStatus.OK).body(sortedTasks);
     }
 
     @PostMapping("/{username}/tasks/sortByPriority")
-    public String getTasksSortedByPriority(Model model, @PathVariable String username,
+    public ResponseEntity<List<Task>> getTasksSortedByPriority(Model model, @PathVariable String username,
                                            @SessionAttribute("username") String sessionUsername) {
         if (!username.equals(sessionUsername)) {
-            return "redirect:/login";
+            return ResponseEntity.status(HttpStatus.FOUND).build();
         }
-        model.addAttribute("username", sessionUsername);
-        model.addAttribute("task", taskPrototype);
-        model.addAttribute("showTask", taskService.getTasksSortedByPriority(sessionUsername));
-        return "main";
+        List<Task> sortedTasks = taskService.getTasksSortedByPriority(sessionUsername);
+
+        return ResponseEntity.status(HttpStatus.OK).body(sortedTasks);
     }
 
     @GetMapping("/{username}/tasks{page}")
-    public String getPaginatedTasks(@PathVariable String username,
-                                    @RequestParam(defaultValue = "0") int page,
-                                    @RequestParam(defaultValue = "5") int size,
-                                    Model model,
-                                    @SessionAttribute("username") String sessionUsername) {
+    public ResponseEntity<Map<String, Object>> getPaginatedTasks(@PathVariable String username,
+                                                                 @RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "5") int size,
+                                                                 @SessionAttribute("username") String sessionUsername) {
 
         if (page < 0) {
             page = 0;
@@ -173,12 +161,12 @@ public class MainController {
         List<Task> paginatedTasks = taskService.getPaginatedTasks(username, page, size);
         int totalTasks = taskService.getTotalTaskCount(username);
 
-        model.addAttribute("currentPage", page);
-        model.addAttribute("pageSize", size);
-        model.addAttribute("totalTasks", totalTasks);
-        model.addAttribute("tasks", paginatedTasks);
-        model.addAttribute("username", sessionUsername);
+        Map<String, Object> response = new HashMap<>();
+        response.put("currentPage", page);
+        response.put("pageSize", size);
+        response.put("totalTasks", totalTasks);
+        response.put("tasks", paginatedTasks);
 
-        return "main";
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

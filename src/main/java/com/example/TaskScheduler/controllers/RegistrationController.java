@@ -4,13 +4,16 @@ import com.example.TaskScheduler.models.User;
 import com.example.TaskScheduler.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 public class RegistrationController {
     private final UserService userService;
     private final User userPrototype;
@@ -22,53 +25,43 @@ public class RegistrationController {
     }
 
     @GetMapping("/registration")
-    public String getRegisteredUser(Model model) {
+    public ResponseEntity<Void> getRegisteredUser(Model model) {
         model.addAttribute("user", userPrototype);
-        return "registration";
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PostMapping("/registration")
-    public String addUser(@ModelAttribute User user, HttpSession session, Model model) {
+    public ResponseEntity<User> addUser(@ModelAttribute User user, HttpSession session, Model model) {
         if (userService.isUsernameEmpty(user.getUsername())) {
-            model.addAttribute("error_username", "Порожнє ім'я");
-            return "registration";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         if (userService.isUsernameShort(user.getUsername())) {
-            model.addAttribute("error_username", "Ім'я повинно бути мати хоча б 3 символи");
-            return "registration";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
         }
         if (userService.isUsernameHasSpace(user.getUsername())) {
-            model.addAttribute("error_username", "Ім'я не повинно містити пробіли");
-            return "registration";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         if (userService.isUsernameTaken(user.getUsername())) {
-            model.addAttribute("error_username", "Такий користувач існує");
-            return "registration";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
         if (userService.isPasswordEmpty(user.getPassword())) {
-            model.addAttribute("error_password", "Порожній пароль");
-            return "registration";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         if (userService.isPasswordShort(user.getPassword())) {
-            model.addAttribute("error_password", "Пароль повинен містити хоча б 5 символів");
-            return "registration";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         if (userService.isPasswordHasSpace(user.getPassword())) {
-            model.addAttribute("error_password", "Пароль не повинен містити пробіли");
-            return "registration";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         if (userService.isPasswordHasLower(user.getPassword())) {
-            model.addAttribute("error_password", "Пароль повинен містити 1 маленьку літеру");
-            return "registration";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         if (userService.isPasswordHasUpper(user.getPassword())) {
-            model.addAttribute("error_password", "Пароль повинен містити 1 велику літеру");
-            return "registration";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         userService.addUser(user);
-        session.setAttribute("username", user.getUsername());
-        return "redirect:/" + user.getUsername();
+        return ResponseEntity.ok(user);
     }
 }
